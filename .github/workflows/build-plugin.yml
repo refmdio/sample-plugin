@@ -3,6 +3,7 @@ name: Build Plugin
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
   workflow_dispatch:
 
@@ -20,6 +21,15 @@ jobs:
           toolchain: stable
           targets: wasm32-wasip1
 
+      - name: Determine plugin metadata
+        run: |
+          set -eux
+          PLUGIN_ID=$(jq -r '.id' plugin.json)
+          PLUGIN_VERSION=$(jq -r '.version' plugin.json)
+          echo "PLUGIN_ID=$PLUGIN_ID" >> "$GITHUB_ENV"
+          echo "PLUGIN_VERSION=$PLUGIN_VERSION" >> "$GITHUB_ENV"
+          echo "PLUGIN_ZIP=${PLUGIN_ID}-plugin.zip" >> "$GITHUB_ENV"
+
       - name: Build backend wasm
         run: cargo build --release --target wasm32-wasip1
         working-directory: backend
@@ -34,10 +44,33 @@ jobs:
           cp "$WASM" "$DIST/backend/plugin.wasm"
           cp frontend/index.mjs "$DIST/index.mjs"
           cp plugin.json "$DIST/plugin.json"
-          (cd "$DIST" && zip -r ../sample-plugin.zip .)
+          (cd "$DIST" && zip -r "../${PLUGIN_ZIP}" .)
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: sample-plugin
-          path: sample-plugin.zip
+          name: ${{ env.PLUGIN_ID }}-plugin
+          path: ${{ env.PLUGIN_ZIP }}
+
+      - name: Create release
+        if: startsWith(github.ref, 'refs/tags/')
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+
+      - name: Upload release asset
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.PLUGIN_ZIP }}
+          asset_name: ${{ env.PLUGIN_ZIP }}
+          asset_content_type: application/zip

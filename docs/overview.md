@@ -60,4 +60,6 @@ The GitHub Actions workflow packages the distributable files into
 - `frontend/index.mjs`
 - `plugin.json`
 
-Use that artifact to install the plugin in RefMD.
+Use the release asset URL (for example,
+`https://github.com/refmdio/sample-plugin/releases/download/<tag>/sample-plugin.zip`)
+when installing from RefMD’s `/plugins` page.
