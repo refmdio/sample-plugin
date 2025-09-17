@@ -238,7 +238,8 @@ export async function canOpen(docId, ctx = {}) {
   try {
     const kv = await ctx?.host?.api?.getKv?.('sample', docId, 'meta', ctx?.token || undefined)
     if (kv && typeof kv === 'object') {
-      return Boolean(kv.isSample)
+      const meta = typeof kv.value === 'object' && kv.value !== null ? kv.value : kv
+      return Boolean(meta?.isSample)
     }
   } catch (err) {
     console.warn('[sample] canOpen getKv failed', err)
