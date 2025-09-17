@@ -1,0 +1,43 @@
+name: Build Plugin
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain (wasm32-wasip1)
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+          targets: wasm32-wasip1
+
+      - name: Build backend wasm
+        run: cargo build --release --target wasm32-wasip1
+        working-directory: backend
+
+      - name: Package plugin assets
+        run: |
+          set -eux
+          DIST=dist
+          rm -rf "$DIST"
+          mkdir -p "$DIST/backend"
+          WASM=$(find backend/target/wasm32-wasip1/release -maxdepth 1 -name '*.wasm' | head -n1)
+          cp "$WASM" "$DIST/backend/plugin.wasm"
+          cp frontend/index.mjs "$DIST/index.mjs"
+          cp plugin.json "$DIST/plugin.json"
+          (cd "$DIST" && zip -r ../sample-plugin.zip .)
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sample-plugin
+          path: sample-plugin.zip
