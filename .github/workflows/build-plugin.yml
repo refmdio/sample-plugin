@@ -40,11 +40,11 @@ jobs:
 
       - name: Install frontend deps
         run: npm ci || npm i --no-audit --no-fund
-        working-directory: .
+        working-directory: frontend
 
       - name: Build frontend bundle
         run: npm run build
-        working-directory: .
+        working-directory: frontend
 
       - name: Build backend wasm
         run: cargo build --release --target wasm32-wasip1

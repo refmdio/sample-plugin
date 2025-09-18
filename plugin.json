@@ -1,7 +1,7 @@
 {
   "id": "sample",
   "name": "Sample Plugin",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "RefMD Team",
   "repository": "https://github.com/refmdio/sample-plugin",
   "abi": "refmd-plugin/v1",
