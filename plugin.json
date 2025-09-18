@@ -1,0 +1,26 @@
+{
+  "id": "sample",
+  "name": "Sample Plugin",
+  "version": "0.1.1",
+  "author": "RefMD Team",
+  "repository": "https://github.com/refmdio/sample-plugin",
+  "abi": "refmd-plugin/v1",
+  "mounts": ["/sample/*"],
+  "frontend": { "entry": "index.mjs", "mode": "esm" },
+  "backend": { "wasm": "backend/plugin.wasm" },
+  "permissions": ["doc.read","doc.write"],
+  "commands": [
+    "sample.create",
+    "sample.hello",
+    "sample.create_record",
+    "sample.update_record",
+    "sample.delete_record"
+  ],
+  "ui": {
+    "toolbar": [ { "title": "New Sample Document", "action": "sample.create" } ],
+    "fileTree": {
+      "icon": "FileText",
+      "identify": { "type": "kvFlag", "key": "meta", "path": "isSample", "equals": true }
+    }
+  }
+}
