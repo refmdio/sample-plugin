@@ -13,7 +13,7 @@ This document explains how the sample plugin works inside RefMD. The goal is to 
 
 1. `mount(container, host)` is called by the app when the `/sample/<docId>` route is matched.
 2. The plugin reads `docId` from the current path/query parameters.
-3. Records for that document are fetched via `host.api.listRecords('sample', docId, 'sample')`.
+3. Records for that document are fetched via `host.exec('host.records.list', { docId, kind: 'sample' })`.
 4. Markdown entered in the textarea is rendered using `host.api.renderMarkdown`, and `host.ui.hydrateAll` enhances the output.
 
 From this point, the user can:
@@ -41,13 +41,13 @@ The Extism backend lives in `backend/src/lib.rs` and uses the shared helper `SAM
 The frontend relies on the bridge utilities exposed by the RefMD host:
 
 - `host.exec` → dispatch Extism commands (`sample.*`)
-- `host.api.listRecords`, `host.api.renderMarkdown`, `host.api.putKv`
+- `host.exec('host.records.list', …)`, `host.api.renderMarkdown`
 - `host.ui.hydrateAll` → rehydrate attachment/wiki-link widgets after markdown render
 
 ## Re-opening demo documents
 
 Documents created by the command are marked in plugin KV (`meta.isSample = true`).
-`canOpen` fetches that flag via `host.api.getKv` to decide if a document should be
+`canOpen` fetches that flag via `host.exec('host.kv.get', …)` to decide if a document should be
 handled by this plugin. When the route matcher runs, `/document/<id>` can be
 remapped to `/sample/<id>` whenever the flag is present.
 

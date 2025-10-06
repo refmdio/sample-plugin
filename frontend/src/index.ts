@@ -70,8 +70,13 @@ export default async function mount(container, host) {
     if (!state.docId) return
     set({ loading: true })
     try {
-      const result = await host.api.listRecords('sample', state.docId, SAMPLE_KIND)
-      const items = Array.isArray(result?.items) ? result.items : []
+      const response = await host.exec('host.records.list', {
+        docId: state.docId,
+        kind: SAMPLE_KIND,
+        token: tokenFromHost,
+      })
+      if (response?.ok === false) throw new Error(response?.error?.message || response?.error?.code)
+      const items = Array.isArray(response?.data?.items) ? response.data.items : []
       set({ records: items })
     } catch (err) { console.error('[sample] listRecords failed', err); set({ records: [] }) }
     finally { set({ loading: false }) }
@@ -111,7 +116,13 @@ export async function canOpen(docId, ctx = {}) {
   const docType = ctx?.document?.type || ctx?.docType
   if (docType && docType === 'sample') return true
   try {
-    const kv = await ctx?.host?.api?.getKv?.('sample', docId, 'meta', ctx?.token || undefined)
+    const kvResult = await ctx?.host?.exec?.('host.kv.get', {
+      docId,
+      key: 'meta',
+      token: ctx?.token || undefined,
+    })
+    if (kvResult?.ok === false) return false
+    const kv = kvResult?.data
     if (kv && typeof kv === 'object') {
       const meta = typeof kv.value === 'object' && kv.value !== null ? kv.value : kv
       return Boolean(meta?.isSample)
@@ -146,4 +157,3 @@ function recordNode(kit, item, onEdit, onDelete) {
 function defaultMd() {
   return '## Sample plugin markdown demo\n\n- [[123e4567-e89b-12d3-a456-426614174000]]\n- **Bold**, _emphasis_, and `inline code`\n'
 }
-
